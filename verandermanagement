@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integraal Verandermanagement Framework | Masterclass</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config for Palette -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-bg': '#f5f5f0', // Warm neutral stone
+                        'brand-card': '#ffffff',
+                        'brand-text': '#292524', // Stone 800
+                        'brand-accent': '#ea580c', // Orange 600 (Action/Change)
+                        'brand-secondary': '#475569', // Slate 600
+                        'brand-highlight': '#eab308', // Yellow 500
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f5f5f0;
+            color: #292524;
+        }
+        /* Chart Container Styling Rules per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px; /* max-w-2xl range */
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px; /* Base height */
+            max-height: 450px;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        .nav-active {
+            border-bottom: 3px solid #ea580c;
+            color: #ea580c;
+            font-weight: 700;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .phase-connector {
+            position: relative;
+        }
+        .phase-connector::after {
+            content: "▼";
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #d6d3d1;
+            font-size: 1.2rem;
+        }
+        @media (min-width: 1024px) {
+            .phase-connector::after {
+                content: "▶";
+                top: 50%;
+                right: -25px;
+                bottom: auto;
+                left: auto;
+                transform: translateY(-50%);
+            }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-brand-secondary tracking-tight">Change<span class="text-brand-accent">Master</span> Pro</span>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="router('home')" id="nav-home" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-brand-accent transition">De Noodzaak</button>
+                    <button onclick="router('model')" id="nav-model" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-brand-accent transition">Het Integrale Model</button>
+                    <button onclick="router('practice')" id="nav-practice" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-brand-accent transition">Tactische Toolkit</button>
+                    <button onclick="router('training')" id="nav-training" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-brand-accent transition">Trainings Casus</button>
+                </nav>
+                <!-- Mobile Menu Button (simplified) -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-brand-accent focus:outline-none">
+                        ☰
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <button onclick="router('home')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">De Noodzaak</button>
+                <button onclick="router('model')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Het Integrale Model</button>
+                <button onclick="router('practice')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Tactische Toolkit</button>
+                <button onclick="router('training')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Trainings Casus</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="app-content" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <!-- Views will be injected here via JS -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-auto py-6 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2026 ChangeMaster Pro. Trainingsmateriaal voor Senior Consultants.</p>
+        </div>
+    </footer>
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Orange Accent for 'Change/Action'. -->
+    <!-- Application Structure Plan: 
+         - Dashboard/Why: Visual gap analysis of why single models fail.
+         - Model: Interactive visualization of the new Unified Framework (7S base -> 5E flow -> ADKAR individual).
+         - Toolkit: Scenario-based "What if" logic for consultants.
+         - Training: Linear interactive case study to test application.
+         Rationale: Consultants need theory first (Why), then structure (Model), then tools (How), then practice (Training).
+    -->
+    <!-- Visualization & Content Choices:
+         - Radar Chart: Comparison of ADKAR vs 7S vs 5E vs Unified to show coverage gaps. (Inform/Compare)
+         - Interactive Grid/Flow: To visualize the "Unified Framework" structure without SVG. (Organize)
+         - Dynamic Cards: For the Tactical Toolkit to allow "drill-down" into specific problems. (Inform/Engage)
+         - Progress/Status Bars: For the training simulation to give feedback. (Game elements)
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        // --- DATA STORE ---
+
+        const contentData = {
+            why: {
+                title: "Waarom Geïsoleerde Modellen Falen",
+                intro: "Als senior consultants zien we projecten vaak vastlopen. Data toont aan dat 70% van de veranderingstrajecten faalt. De oorzaak ligt zelden in één factor, maar in het onvermogen om systeem, proces en mens te verbinden. Deze sectie analyseert de 'blinde vlekken' van traditionele modellen.",
+                chartData: {
+                    labels: ['Structuur & Systeem (Hard)', 'Strategie', 'Leiderschap (Proces)', 'Cultuur (Soft)', 'Individuele Adoptie', 'Executiekracht'],
+                    datasets: [
+                        {
+                            label: 'McKinsey 7S (Alleen Structuur)',
+                            data: [9, 8, 5, 6, 2, 4],
+                            borderColor: 'rgba(100, 116, 139, 0.5)',
+                            backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                        },
+                        {
+                            label: 'ADKAR (Alleen Individu)',
+                            data: [2, 3, 4, 7, 10, 5],
+                            borderColor: 'rgba(71, 85, 105, 0.5)',
+                            backgroundColor: 'rgba(71, 85, 105, 0.1)',
+                        },
+                        {
+                            label: 'CML 5E (Alleen Proces)',
+                            data: [4, 6, 9, 6, 6, 8],
+                            borderColor: 'rgba(51, 65, 85, 0.5)',
+                            backgroundColor: 'rgba(51, 65, 85, 0.1)',
+                        },
+                        {
+                            label: 'Unified Framework (Integraal)',
+                            data: [9, 9, 9, 9, 9, 9],
+                            borderColor: 'rgba(234, 88, 12, 1)',
+                            backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                            borderWidth: 3
+                        }
+                    ]
+                }
+            },
+            model: {
+                title: "Het Unified Change Impact Framework (UCIF)",
+                intro: "Dit model integreert de harde werkelijkheid van de organisatie (7S) met het proces van uitrol (5E) en de psychologie van het individu (ADKAR). Het is geen lineair proces, maar een gelaagde architectuur voor implementatie.",
+                phases: [
+                    {
+                        id: 'prep',
+                        title: 'Fase 1: Fundering & Analyse',
+                        model_focus: 'McKinsey 7S',
+                        desc: 'Voordat de verandering start, moet de organisatie "change-ready" zijn. We gebruiken 7S om frictie tussen de huidige structuur en de nieuwe strategie te vinden.',
+                        details: [
+                            "<strong>Strategy:</strong> Is de verandering logisch gekoppeld aan de visie?",
+                            "<strong>Systems:</strong> Ondersteunen de IT/HR systemen het nieuwe gedrag?",
+                            "<strong>Structure:</strong> Zijn de rapportagelijnen aangepast?"
+                        ],
+                        action: "Output: Een Gap-analyse en Stakeholder Map."
+                    },
+                    {
+                        id: 'rollout',
+                        title: 'Fase 2: Fasering & Leiderschap',
+                        model_focus: 'CML 5E\'s (Envision, Engage)',
+                        desc: 'De executie vraagt om een ritme. We gebruiken de 5E cyclus om de verandering te faseren en leiderschap te activeren.',
+                        details: [
+                            "<strong>Envision:</strong> Het leiderschap vertelt één verhaal (Storytelling).",
+                            "<strong>Engage:</strong> Tactisch management wordt betrokken bij de oplossing.",
+                            "<strong>Empower:</strong> Barrières worden verwijderd voor teams."
+                        ],
+                        action: "Output: Een Communicatieplan en Sponsor Roadmap."
+                    },
+                    {
+                        id: 'adopt',
+                        title: 'Fase 3: Individuele Transformatie',
+                        model_focus: 'ADKAR',
+                        desc: 'Uiteindelijk verandert de organisatie niet, maar de mensen wel. In de operationele fase zoomen we in op het individu.',
+                        details: [
+                            "<strong>Awareness/Desire:</strong> Waarom moet IK veranderen?",
+                            "<strong>Knowledge/Ability:</strong> Kan ik dit?",
+                            "<strong>Reinforcement:</strong> Word ik beloond voor het nieuwe gedrag?"
+                        ],
+                        action: "Output: Trainingscurriculum en Coaching scripts."
+                    }
+                ]
+            },
+            toolkit: {
+                scenarios: [
+                    {
+                        id: 's1',
+                        role: 'Tactisch (Teamleider)',
+                        situation: 'De "Lemen Laag"',
+                        description: 'Een teamleider zegt "Ja" in meetings, maar doet "Nee" in het team. Passieve weerstand.',
+                        diagnosis: "Fout in de overgang van 7S (Structure) naar ADKAR (Desire). De teamleider ziet de structuur veranderen maar voelt geen persoonlijk voordeel (WIIFM).",
+                        solution: [
+                            "1. <strong>7S Check:</strong> Conflicteren zijn KPI's (Systems) met het nieuwe doel?",
+                            "2. <strong>5E Actie:</strong> Ga terug naar 'Engage'. Laat hem meebeslissen over de 'Hoe'.",
+                            "3. <strong>ADKAR Focus:</strong> Desire. Focus gesprek niet op bedrijfsbelang, maar op zijn teamresultaten."
+                        ]
+                    },
+                    {
+                        id: 's2',
+                        role: 'Operationeel (Eindgebruiker)',
+                        situation: 'Nieuw ERP Systeem',
+                        description: 'Gebruikers klagen over complexiteit en vallen terug op Excel sheets.',
+                        diagnosis: "Klassiek gebrek aan Ability (ADKAR), maar veroorzaakt door slechte Systems (7S) en gebrek aan Empower (5E).",
+                        solution: [
+                            "1. <strong>7S Check:</strong> Is de hardware/support (Systems) adequaat?",
+                            "2. <strong>5E Actie:</strong> Empower. Geef 'Excel-tijd' tijdelijk vrij om te leren.",
+                            "3. <strong>ADKAR Focus:</strong> Knowledge & Ability. Stop met 'verkopen' (Awareness is al daar), start met intensieve 'on-the-job' training."
+                        ]
+                    },
+                    {
+                        id: 's3',
+                        role: 'Strategisch (Directie)',
+                        situation: 'Ongeduldige Sponsor',
+                        description: 'Directie wil resultaat zien en druk verhogen, terwijl de basis niet op orde is.',
+                        diagnosis: "Overschatting van 7S (Strategy) en onderschatting van 5E (Edify/Sustain).",
+                        solution: [
+                            "1. <strong>7S Check:</strong> Shared Values. Snapt de directie dat cultuur tijd kost?",
+                            "2. <strong>5E Actie:</strong> Envision. Herhaal het 'waarom' van de fasering.",
+                            "3. <strong>ADKAR Focus:</strong> Reinforcement. Vier kleine successen om ongeduld te temperen."
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentState = {
+            view: 'home',
+            simulationStep: 0,
+            simScore: 0
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        function init() {
+            router('home');
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function router(viewName) {
+            currentState.view = viewName;
+            
+            // Update Nav Styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('nav-active', 'text-brand-accent');
+                btn.classList.add('text-gray-500');
+            });
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            if(activeBtn) {
+                activeBtn.classList.add('nav-active', 'text-brand-accent');
+                activeBtn.classList.remove('text-gray-500');
+            }
+
+            // Render View
+            const appContent = document.getElementById('app-content');
+            appContent.innerHTML = ''; // Clear current
+
+            switch(viewName) {
+                case 'home':
+                    renderHome(appContent);
+                    break;
+                case 'model':
+                    renderModel(appContent);
+                    break;
+                case 'practice':
+                    renderPractice(appContent);
+                    break;
+                case 'training':
+                    renderTraining(appContent);
+                    break;
+            }
+        }
+
+        // --- VIEW RENDERERS ---
+
+        function renderHome(container) {
+            const html = `
+                <div class="space-y-12 animate-fade-in">
+                    <!-- Hero Section -->
+                    <div class="text-center max-w-3xl mx-auto">
+                        <h1 class="text-4xl font-bold text-brand-text mb-4">Integratie is de Sleutel tot Transformatie</h1>
+                        <p class="text-lg text-gray-600 mb-8">${contentData.why.intro}</p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-32">
+                                <div class="text-2xl font-bold text-brand-secondary">7S</div>
+                                <div class="text-xs text-gray-500 uppercase">Context</div>
+                            </div>
+                            <div class="text-2xl text-gray-300 self-center">+</div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-32">
+                                <div class="text-2xl font-bold text-brand-secondary">5E</div>
+                                <div class="text-xs text-gray-500 uppercase">Proces</div>
+                            </div>
+                            <div class="text-2xl text-gray-300 self-center">+</div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-32">
+                                <div class="text-2xl font-bold text-brand-secondary">ADKAR</div>
+                                <div class="text-xs text-gray-500 uppercase">Mens</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Section -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                        <h2 class="text-2xl font-bold text-brand-text mb-2 text-center">Model Gap Analyse</h2>
+                        <p class="text-center text-sm text-gray-500 mb-6">Vergelijking van dekkingsgraad per kritieke succesfactor</p>
+                        
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                            <div class="p-4 bg-gray-50 rounded border-l-4 border-slate-500">
+                                <h3 class="font-bold mb-1">McKinsey 7S Risico</h3>
+                                <p class="text-gray-600">Geweldig voor analyse, maar te statisch. Vergeet vaak de emotionele reis van de medewerker.</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded border-l-4 border-slate-600">
+                                <h3 class="font-bold mb-1">ADKAR Risico</h3>
+                                <p class="text-gray-600">Focus op individu is krachtig, maar faalt als de organisatiestructuur (KPIs, IT) tegenwerkt.</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded border-l-4 border-orange-500">
+                                <h3 class="font-bold mb-1">De Oplossing</h3>
+                                <p class="text-gray-600">Het Unified Framework vult de gaten door context, proces en mens parallel te managen.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+            
+            // Init Chart
+            setTimeout(() => {
+                const ctx = document.getElementById('radarChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: contentData.why.chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        elements: {
+                            line: { borderWidth: 2 }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: { display: true },
+                                suggestedMin: 0,
+                                suggestedMax: 10,
+                                ticks: { display: false } // Hide numbers for cleaner look
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }, 100);
+        }
+
+        function renderModel(container) {
+            const html = `
+                <div class="space-y-8">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-brand-text mb-2">${contentData.model.title}</h2>
+                        <p class="text-gray-600 max-w-3xl">${contentData.model.intro}</p>
+                    </div>
+
+                    <!-- Interactive Logic Flow -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+                        ${contentData.model.phases.map((phase, index) => `
+                            <div class="flex flex-col h-full ${index < 2 ? 'phase-connector' : ''}">
+                                <!-- Header Card -->
+                                <div class="bg-white p-6 rounded-t-xl border-t-4 border-brand-accent shadow-sm z-10 relative">
+                                    <div class="text-xs font-bold text-brand-accent uppercase tracking-wide mb-1">Stap ${index + 1}</div>
+                                    <h3 class="text-xl font-bold text-gray-800">${phase.title}</h3>
+                                    <div class="mt-2 inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-mono">
+                                        Focus: ${phase.model_focus}
+                                    </div>
+                                </div>
+                                
+                                <!-- Content Body -->
+                                <div class="bg-brand-bg border border-t-0 border-gray-200 p-6 flex-grow rounded-b-xl shadow-lg flex flex-col justify-between hover:bg-white transition duration-300">
+                                    <div>
+                                        <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                                            ${phase.desc}
+                                        </p>
+                                        <ul class="space-y-2 mb-6">
+                                            ${phase.details.map(d => `
+                                                <li class="flex items-start text-sm text-gray-700">
+                                                    <span class="text-brand-accent mr-2 mt-1">✔</span>
+                                                    <span>${d}</span>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                    <div class="mt-4 pt-4 border-t border-gray-200">
+                                        <div class="flex items-center text-brand-secondary font-semibold text-sm">
+                                            <span class="mr-2">⚡</span> ${phase.action}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Synthesis Block -->
+                    <div class="mt-12 bg-slate-800 text-white p-8 rounded-xl shadow-xl text-center">
+                        <h3 class="text-xl font-bold mb-4">De Integrale Logica</h3>
+                        <p class="max-w-2xl mx-auto text-slate-300 mb-6">
+                            Je kunt ADKAR (WIIFM) niet succesvol inzetten als de 7S (Systemen) het gedrag blokkeren. 
+                            Je kunt 7S (Structuur) niet wijzigen zonder de 5E (Engagement) van het management.
+                        </p>
+                        <div class="flex flex-wrap justify-center gap-4 text-sm font-mono">
+                            <span class="px-3 py-1 bg-slate-700 rounded">1. Fix de Omgeving (7S)</span>
+                            <span class="text-slate-500">→</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded">2. Plan de Reis (5E)</span>
+                            <span class="text-slate-500">→</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded">3. Begeleid de Persoon (ADKAR)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderPractice(container) {
+            const html = `
+                <div class="space-y-6">
+                    <div class="mb-6">
+                        <h2 class="text-3xl font-bold text-brand-text mb-2">Tactische Toolkit</h2>
+                        <p class="text-gray-600">Selecteer een scenario om te zien hoe het integrale model een oplossing biedt voor veelvoorkomende blokkades.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        ${contentData.toolkit.scenarios.map((scenario, index) => `
+                            <button onclick="showScenario('${scenario.id}')" 
+                                class="text-left bg-white p-4 rounded-lg shadow border border-gray-200 hover:border-brand-accent hover:shadow-md transition group h-full flex flex-col">
+                                <span class="text-xs font-bold text-brand-accent uppercase mb-1">${scenario.role}</span>
+                                <h3 class="font-bold text-gray-800 mb-2 group-hover:text-brand-accent">${scenario.situation}</h3>
+                                <p class="text-xs text-gray-500 mt-auto line-clamp-2">${scenario.description}</p>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div id="scenario-display" class="bg-white rounded-xl shadow-lg border border-gray-100 min-h-[300px] p-8 hidden animate-fade-in-up">
+                        <!-- Dynamic Content loads here -->
+                    </div>
+                    
+                    <!-- Default placeholder -->
+                    <div id="scenario-placeholder" class="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-400">
+                        Selecteer een situatie hierboven om de analyse te starten.
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function showScenario(id) {
+            const scenario = contentData.toolkit.scenarios.find(s => s.id === id);
+            const display = document.getElementById('scenario-display');
+            const placeholder = document.getElementById('scenario-placeholder');
+
+            placeholder.classList.add('hidden');
+            display.classList.remove('hidden');
+
+            display.innerHTML = `
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="md:w-1/3 border-r border-gray-100 pr-0 md:pr-8">
+                        <span class="inline-block px-2 py-1 bg-gray-100 rounded text-xs font-bold text-gray-600 mb-2">${scenario.role}</span>
+                        <h3 class="text-2xl font-bold text-brand-text mb-4">${scenario.situation}</h3>
+                        <div class="bg-red-50 p-4 rounded border-l-4 border-red-400 mb-4">
+                            <p class="font-bold text-red-800 text-sm mb-1">Het Symptoom:</p>
+                            <p class="text-red-700 text-sm">${scenario.description}</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-400">
+                            <p class="font-bold text-blue-800 text-sm mb-1">De Diagnose:</p>
+                            <p class="text-blue-700 text-sm">${scenario.diagnosis}</p>
+                        </div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h4 class="font-bold text-brand-secondary mb-4 flex items-center">
+                            <span class="w-6 h-6 bg-brand-accent text-white rounded-full flex items-center justify-center text-xs mr-2">✓</span>
+                            De Integrale Oplossing
+                        </h4>
+                        <ul class="space-y-4">
+                            ${scenario.solution.map(step => `
+                                <li class="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 border border-gray-200">
+                                    ${step}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <div class="mt-6 p-3 bg-yellow-50 text-yellow-800 text-xs rounded text-center font-medium">
+                            Tip voor de consultant: Adresseer de 'Harde' blokkade eerst, anders landt de 'Zachte' boodschap niet.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTraining(container) {
+            // Check if simulated already
+            if(currentState.simulationStep === 0) {
+                renderTrainingIntro(container);
+            } else {
+                renderTrainingStep(container);
+            }
+        }
+
+        function renderTrainingIntro(container) {
+            container.innerHTML = `
+                <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
+                    <div class="w-16 h-16 bg-brand-accent text-white rounded-full flex items-center justify-center text-2xl mx-auto mb-6">🎓</div>
+                    <h2 class="text-3xl font-bold text-brand-text mb-4">Training Casus: Project 'Nexus'</h2>
+                    <p class="text-gray-600 mb-8 text-left">
+                        Je bent ingehuurd als Lead Consultant. Je organisatie implementeert een nieuwe Agile werkwijze in een traditionele productieomgeving.
+                        De directie is enthousiast, maar op de vloer is het stil. De teamleiders zijn cynisch.
+                        <br><br>
+                        Aan jou de taak om het <strong>Unified Framework</strong> toe te passen. Maak de juiste keuzes om adoptie te garanderen.
+                    </p>
+                    <button onclick="startSimulation()" class="bg-brand-accent hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-lg transition transform active:scale-95 shadow-lg">
+                        Start Simulatie
+                    </button>
+                </div>
+            `;
+        }
+
+        const simSteps = [
+            {
+                question: "Fase 1: De Start. De directie wil morgen een 'Townhall meeting' organiseren om Agile aan te kondigen.",
+                options: [
+                    {
+                        text: "Doen! Gelijk momentum creëren (Envision - 5E).",
+                        feedback: "Te snel. De structuur (7S) is nog niet klaar voor Agile. Mensen raken in paniek omdat ze niet weten wat het voor hun functie betekent.",
+                        score: 0,
+                        modelHint: "7S Structure check gemist."
+                    },
+                    {
+                        text: "Stop. Eerst een 7S analyse doen op HR-beloningen en rapportagelijnen.",
+                        feedback: "Correct. Je ontdekt dat de huidige KPI's individueel zijn, terwijl Agile teamwerk vereist. Je past dit eerst aan.",
+                        score: 1,
+                        modelHint: "Goed gebruik van 7S 'Systems' als fundering."
+                    }
+                ]
+            },
+            {
+                question: "Fase 2: De Weerstand. De 7S analyse is gedaan. Nu moeten de teamleiders mee. Ze vrezen positieverlies.",
+                options: [
+                    {
+                        text: "Stuur ze naar een 2-daagse Agile training (ADKAR - Knowledge).",
+                        feedback: "Zonde van het geld. Ze hebben geen 'Desire' en geen 'Awareness' van het probleem. Ze zullen de training saboteren.",
+                        score: 0,
+                        modelHint: "ADKAR: Awareness/Desire overgeslagen."
+                    },
+                    {
+                        text: "Organiseer sessies waarin zij het nieuwe proces mede-ontwerpen (5E - Engage).",
+                        feedback: "Exact. Door ze eigenaar te maken van het proces (Engage), bouw je 'Desire' (ADKAR) op voordat je gaat trainen.",
+                        score: 1,
+                        modelHint: "Integratie van 5E Engage en ADKAR Desire."
+                    }
+                ]
+            },
+            {
+                question: "Fase 3: De Borging. Het project draait, maar na 3 maanden vallen mensen terug in oud gedrag.",
+                options: [
+                    {
+                        text: "Stuur een mail over het belang van volhouden.",
+                        feedback: "Te zwak. Communicatie alleen verandert gedrag niet op lange termijn.",
+                        score: 0,
+                        modelHint: "Gemiste kans op Reinforcement."
+                    },
+                    {
+                        text: "Pas de beoordelingscyclus aan en vier successen publiekelijk (7S Systems + ADKAR Reinforcement).",
+                        feedback: "Uitstekend. De harde systeemwijziging borgt het gedrag, de viering motiveert.",
+                        score: 1,
+                        modelHint: "Sterke combinatie van Hard (7S) en Zacht (ADKAR)."
+                    }
+                ]
+            }
+        ];
+
+        function startSimulation() {
+            currentState.simulationStep = 1;
+            currentState.simScore = 0;
+            renderTraining(document.getElementById('app-content'));
+        }
+
+        function renderTrainingStep(container) {
+            const stepIndex = currentState.simulationStep - 1;
+            
+            if(stepIndex >= simSteps.length) {
+                // End Screen
+                const success = currentState.simScore >= 2;
+                container.innerHTML = `
+                    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center animate-fade-in">
+                        <div class="text-6xl mb-4">${success ? '🏆' : '📚'}</div>
+                        <h2 class="text-3xl font-bold text-brand-text mb-2">${success ? 'Geslaagd!' : 'Nog even oefenen'}</h2>
+                        <p class="text-xl text-gray-600 mb-6">Je score: ${currentState.simScore} / 3</p>
+                        <p class="text-gray-600 mb-8">
+                            ${success 
+                                ? "Je hebt de kracht van het Unified Framework begrepen: Eerst Systeem, dan Proces, dan Mens." 
+                                : "Probeer niet te snel naar de 'zachte' kant of training te springen als de harde randvoorwaarden (7S) niet kloppen."}
+                        </p>
+                        <button onclick="currentState.simulationStep=0; init();" class="text-brand-accent font-bold hover:underline">Terug naar start</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const step = simSteps[stepIndex];
+            
+            container.innerHTML = `
+                <div class="max-w-3xl mx-auto animate-fade-in">
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                        <div class="bg-brand-accent h-2.5 rounded-full" style="width: ${(stepIndex / simSteps.length) * 100}%"></div>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+                        <div class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Beslispunt ${currentState.simulationStep}</div>
+                        <h3 class="text-xl font-bold text-brand-text mb-6">${step.question}</h3>
+                        
+                        <div class="grid gap-4">
+                            ${step.options.map((opt, idx) => `
+                                <button onclick="handleOption(${idx})" class="text-left p-4 rounded border border-gray-200 hover:bg-orange-50 hover:border-brand-accent transition">
+                                    <span class="font-bold text-brand-secondary block mb-1">Optie ${String.fromCharCode(65+idx)}</span>
+                                    ${opt.text}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleOption(optIndex) {
+            const stepIndex = currentState.simulationStep - 1;
+            const step = simSteps[stepIndex];
+            const selected = step.options[optIndex];
+            
+            currentState.simScore += selected.score;
+
+            // Show feedback modal logic (simplified here by replacing content momentarily)
+            const appContent = document.getElementById('app-content');
+            appContent.innerHTML = `
+                <div class="max-w-2xl mx-auto mt-12 animate-fade-in">
+                    <div class="bg-white p-8 rounded-xl shadow-xl border-l-8 ${selected.score > 0 ? 'border-green-500' : 'border-red-500'}">
+                        <h3 class="text-2xl font-bold mb-2 ${selected.score > 0 ? 'text-green-700' : 'text-red-700'}">
+                            ${selected.score > 0 ? 'Goede keuze!' : 'Risicovol besluit'}
+                        </h3>
+                        <p class="text-gray-700 text-lg mb-4">${selected.feedback}</p>
+                        <div class="bg-gray-100 p-3 rounded text-sm text-gray-600 mb-6">
+                            <strong>Theorie koppeling:</strong> ${selected.modelHint}
+                        </div>
+                        <button onclick="nextStep()" class="bg-brand-secondary text-white px-6 py-2 rounded hover:bg-slate-700 transition">Volgende stap &rarr;</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function nextStep() {
+            currentState.simulationStep++;
+            renderTraining(document.getElementById('app-content'));
+        }
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
